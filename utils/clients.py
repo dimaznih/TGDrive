@@ -15,11 +15,13 @@ premium_work_loads = {}
 main_bot = None
 
 # ✅ TOR PROXY CONFIG - BYPASS IP BLOCK
-TOR_PROXY = {
-    "scheme": "socks5",
-    "hostname": "127.0.0.1", 
-    "port": 9050
-}
+# TEMPORARILY DISABLED TO AVOID FLOOD WAIT
+TOR_PROXY = None  # Disabled to bypass flood wait
+# TOR_PROXY = {
+#     "scheme": "socks5",
+#     "hostname": "127.0.0.1", 
+#     "port": 9050
+# }
 
 async def initialize_clients():
     global multi_clients, work_loads, premium_clients, premium_work_loads
@@ -35,7 +37,10 @@ async def initialize_clients():
 
     async def start_client(client_id, token, type):
         try:
-            logger.info(f"Starting - {type.title()} Client {client_id} via Tor Proxy")
+            if TOR_PROXY:
+                logger.info(f"Starting - {type.title()} Client {client_id} via Tor Proxy")
+            else:
+                logger.info(f"Starting - {type.title()} Client {client_id}")
 
             if type == "bot":
                 client = Client(
@@ -44,7 +49,7 @@ async def initialize_clients():
                     api_hash=config.API_HASH,
                     bot_token=token,
                     workdir=session_cache_path,
-                    proxy=TOR_PROXY  # ✅ Use Tor proxy to bypass IP block
+                    proxy=TOR_PROXY  # None = direct connection, no proxy
                 )
                 client.loop = asyncio.get_running_loop()
                 await client.start()
@@ -64,7 +69,7 @@ async def initialize_clients():
                     sleep_threshold=config.SLEEP_THRESHOLD,
                     workdir=session_cache_path,
                     no_updates=True,
-                    proxy=TOR_PROXY  # ✅ Use Tor proxy to bypass IP block
+                    proxy=TOR_PROXY  # None = direct connection, no proxy
                 ).start()
                 # ✅ Skip auto-send message to prevent "Peer id invalid" errors
                 # await client.send_message(
