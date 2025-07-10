@@ -48,10 +48,11 @@ async def initialize_clients():
                 )
                 client.loop = asyncio.get_running_loop()
                 await client.start()
-                await client.send_message(
-                    config.STORAGE_CHANNEL,
-                    f"Started - {type.title()} Client {client_id} via Tor",
-                )
+                # ✅ Skip auto-send message to prevent "Peer id invalid" errors
+                # await client.send_message(
+                #     config.STORAGE_CHANNEL,
+                #     f"Started - {type.title()} Client {client_id} via Tor",
+                # )
                 multi_clients[client_id] = client
                 work_loads[client_id] = 0
             elif type == "user":
@@ -65,15 +66,35 @@ async def initialize_clients():
                     no_updates=True,
                     proxy=TOR_PROXY  # ✅ Use Tor proxy to bypass IP block
                 ).start()
-                await client.send_message(
-                    config.STORAGE_CHANNEL,
-                    f"Started - {type.title()} Client {client_id} via Tor",
-                )
+                # ✅ Skip auto-send message to prevent "Peer id invalid" errors
+                # await client.send_message(
+                #     config.STORAGE_CHANNEL,
+                #     f"Started - {type.title()} Client {client_id} via Tor",
+                # )
                 premium_clients[client_id] = client
                 premium_work_loads[client_id] = 0
 
             logger.info(f"Started - {type.title()} Client {client_id}")
         except Exception as e:
+            error_msg = str(e)
+            if "FLOOD_WAIT_X" in error_msg:
+                # Extract wait time from flood wait error
+                import re
+                wait_match = re.search(r'Please wait (\d+) seconds', error_msg)
+                if wait_match:
+                    wait_time = int(wait_match.group(1))
+                    logger.info(f"🕐 Flood wait detected: {wait_time} seconds")
+                    logger.info(f"⏰ Will retry at: {wait_time//60}m {wait_time%60}s from now")
+                    logger.info("💡 You can:")
+                    logger.info("   1. Wait for automatic retry")
+                    logger.info("   2. Create new bot token at @BotFather")
+                    logger.info("   3. Use different IP/VPS")
+                    
+                    # Optional: Auto-retry after wait time (comment out if not wanted)
+                    # logger.info(f"⏳ Auto-retrying in {wait_time} seconds...")
+                    # await asyncio.sleep(wait_time + 5)  # +5 seconds buffer
+                    # return await start_client(client_id, token, type)  # Retry
+                    
             logger.error(
                 f"Failed To Start {type.title()} Client - {client_id} Error: {e}"
             )
