@@ -32,48 +32,74 @@ function fixGridLayoutConsistency() {
             overflow: visible !important;
         }
         
-        /* Responsive: Tetap prioritas nama kolom di layar kecil */
+        /* 🐛 AGGRESSIVE MOBILE FIX untuk selected items */
         @media (max-width: 768px) {
             .file-item,
             [data-name],
             [data-path] {
-                grid-template-columns: minmax(200px, 4fr) 100px 80px 60px 30px !important;
+                grid-template-columns: minmax(150px, 3fr) 80px 60px 40px !important;
+                gap: 8px !important;
+                padding: 8px !important;
+                font-size: 13px !important;
             }
             
-            /* 🐛 KHUSUS FIX: Selected items responsive di mobile */
+            /* 🐛 ULTRA PRIORITAS: Selected items di mobile */
             .file-item.direct-selected,
             [data-name].direct-selected,
             [data-path].direct-selected {
-                grid-template-columns: minmax(180px, 5fr) 80px 60px 40px 25px !important;
-                padding: 8px 12px !important;
+                grid-template-columns: 1fr 60px 30px !important;
+                gap: 4px !important;
+                padding: 6px 8px !important;
+                margin: 2px 0 !important;
             }
             
-            /* Kolom nama untuk selected items di mobile lebih prioritas */
+            /* Kolom nama MAKSIMAL prioritas untuk selected items */
             .file-item.direct-selected .flex.items-center.gap-2.truncate,
             .file-item.direct-selected > div:first-child {
-                min-width: 160px !important;
+                min-width: 0 !important;
+                width: 100% !important;
                 max-width: none !important;
                 overflow: visible !important;
                 flex-shrink: 0 !important;
+                flex-grow: 1 !important;
                 position: relative !important;
-                z-index: 5 !important;
+                z-index: 10 !important;
+                margin-right: 8px !important;
             }
             
-            /* Text nama file di mobile untuk selected items */
+            /* Text nama file DOMINAN di mobile */
             .file-item.direct-selected .text-sm.text-gray-900.truncate,
             .file-item.direct-selected .file-name {
                 white-space: nowrap !important;
                 overflow: visible !important;
                 text-overflow: unset !important;
-                min-width: 140px !important;
-                font-weight: 600 !important;
-                color: #1565c0 !important;
+                width: 100% !important;
+                font-weight: 700 !important;
+                color: #0d47a1 !important;
+                font-size: 14px !important;
+                line-height: 1.2 !important;
             }
             
-            /* Hide some columns di mobile untuk selected items */
+            /* HIDE semua kolom kecuali nama dan action untuk selected */
+            .file-item.direct-selected > div:nth-child(2),
             .file-item.direct-selected > div:nth-child(3),
             .file-item.direct-selected > div:nth-child(4) {
                 display: none !important;
+            }
+            
+            /* Keep only last column (actions) visible but minimal */
+            .file-item.direct-selected > div:last-child {
+                width: 30px !important;
+                min-width: 30px !important;
+                flex-shrink: 0 !important;
+            }
+            
+            /* Selected item styling optimized for mobile */
+            .file-item.direct-selected {
+                background: linear-gradient(135deg, #e3f2fd, #bbdefb) !important;
+                border: 2px solid #1976d2 !important;
+                border-radius: 8px !important;
+                box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3) !important;
             }
         }
         
@@ -82,16 +108,24 @@ function fixGridLayoutConsistency() {
             .file-item,
             [data-name],
             [data-path] {
-                grid-template-columns: minmax(150px, 6fr) 60px 30px !important;
+                grid-template-columns: 1fr 40px !important;
+                gap: 4px !important;
+                padding: 6px !important;
+                font-size: 12px !important;
             }
             
+            /* ULTRA MINIMAL untuk selected di extreme mobile */
             .file-item.direct-selected,
             [data-name].direct-selected,
             [data-path].direct-selected {
-                grid-template-columns: minmax(120px, 8fr) 40px 25px !important;
+                grid-template-columns: 1fr 25px !important;
+                gap: 2px !important;
+                padding: 4px 6px !important;
+                margin: 1px 0 !important;
             }
             
-            /* Hide more columns di extreme mobile */
+            /* Hide ALL columns except name dan minimal action */
+            .file-item > div:nth-child(2),
             .file-item > div:nth-child(3),
             .file-item > div:nth-child(4),
             .file-item > div:nth-child(5) {
@@ -102,6 +136,25 @@ function fixGridLayoutConsistency() {
             .file-item.direct-selected > div:nth-child(3),
             .file-item.direct-selected > div:nth-child(4) {
                 display: none !important;
+            }
+            
+            /* Action button minimal di extreme mobile */
+            .file-item.direct-selected > div:last-child {
+                width: 25px !important;
+                min-width: 25px !important;
+            }
+            
+            .file-item.direct-selected > div:last-child button {
+                width: 20px !important;
+                height: 20px !important;
+                padding: 2px !important;
+            }
+            
+            /* Font super kecil untuk extreme mobile */
+            .file-item.direct-selected .text-sm.text-gray-900.truncate,
+            .file-item.direct-selected .file-name {
+                font-size: 12px !important;
+                font-weight: 600 !important;
             }
         }
         
@@ -115,7 +168,33 @@ function fixGridLayoutConsistency() {
         
         @media (max-width: 768px) {
             #table-header {
-                grid-template-columns: minmax(250px, 3fr) 120px 100px 80px 40px !important;
+                grid-template-columns: minmax(150px, 3fr) 80px 60px 40px !important;
+                gap: 8px !important;
+                padding: 8px !important;
+                font-size: 11px !important;
+            }
+            
+            /* Hide some header columns in mobile */
+            #table-header > div:nth-child(3),
+            #table-header > div:nth-child(4) {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #table-header {
+                grid-template-columns: 1fr 40px !important;
+                gap: 4px !important;
+                padding: 6px !important;
+                font-size: 10px !important;
+            }
+            
+            /* Hide most header columns in extreme mobile */
+            #table-header > div:nth-child(2),
+            #table-header > div:nth-child(3),
+            #table-header > div:nth-child(4),
+            #table-header > div:nth-child(5) {
+                display: none !important;
             }
         }
     `;
@@ -128,9 +207,9 @@ function fixGridLayoutConsistency() {
     console.log('✅ Grid layout consistency applied');
 }
 
-// 🐛 BUG FIX 1B: Enhanced Responsive Layout for Selected Items
+// 🐛 BUG FIX 1B: AGGRESSIVE Responsive Layout for Selected Items
 function fixResponsiveSelectedItems() {
-    console.log('📱 Applying responsive fixes for selected items...');
+    console.log('📱 Applying AGGRESSIVE responsive fixes for selected items...');
     
     // Force apply responsive layout specifically for selected items
     const selectedItems = document.querySelectorAll('.direct-selected');
@@ -140,30 +219,85 @@ function fixResponsiveSelectedItems() {
         item.offsetHeight; // Force reflow
         item.style.display = 'grid';
         
-        // Ensure proper grid template for selected items
+        // Detect screen size
         const isNarrow = window.innerWidth <= 768;
         const isExtremeNarrow = window.innerWidth <= 480;
         
+        // Apply ULTRA aggressive grid layout
         if (isExtremeNarrow) {
-            item.style.gridTemplateColumns = 'minmax(120px, 8fr) 40px 25px';
+            item.style.gridTemplateColumns = '1fr 25px';
+            item.style.gap = '2px';
+            item.style.padding = '4px 6px';
+            item.style.margin = '1px 0';
         } else if (isNarrow) {
-            item.style.gridTemplateColumns = 'minmax(180px, 5fr) 80px 60px 40px 25px';
+            item.style.gridTemplateColumns = '1fr 60px 30px';
+            item.style.gap = '4px';
+            item.style.padding = '6px 8px';
+            item.style.margin = '2px 0';
+        } else {
+            // Reset to normal for desktop
+            item.style.gridTemplateColumns = '';
+            item.style.gap = '';
+            item.style.padding = '';
+            item.style.margin = '';
         }
         
-        // Ensure name column properties
+        // ULTRA prioritize name column in mobile
         const nameContainer = item.querySelector('.flex.items-center.gap-2.truncate') || 
                              item.querySelector('div:first-child');
-        if (nameContainer) {
-            if (isNarrow) {
-                nameContainer.style.minWidth = isExtremeNarrow ? '100px' : '160px';
-                nameContainer.style.overflow = 'visible';
-                nameContainer.style.flexShrink = '0';
-                nameContainer.style.zIndex = '5';
+        if (nameContainer && isNarrow) {
+            nameContainer.style.minWidth = '0';
+            nameContainer.style.width = '100%';
+            nameContainer.style.overflow = 'visible';
+            nameContainer.style.flexShrink = '0';
+            nameContainer.style.flexGrow = '1';
+            nameContainer.style.zIndex = '10';
+            nameContainer.style.marginRight = '8px';
+            
+            // Apply to filename text as well
+            const fileNameText = nameContainer.querySelector('.text-sm.text-gray-900.truncate') ||
+                                nameContainer.querySelector('.file-name') ||
+                                nameContainer.querySelector('span:last-child');
+            if (fileNameText) {
+                fileNameText.style.whiteSpace = 'nowrap';
+                fileNameText.style.overflow = 'visible';
+                fileNameText.style.textOverflow = 'unset';
+                fileNameText.style.width = '100%';
+                fileNameText.style.fontWeight = '700';
+                fileNameText.style.color = '#0d47a1';
+                fileNameText.style.fontSize = isExtremeNarrow ? '12px' : '14px';
+                fileNameText.style.lineHeight = '1.2';
+            }
+        }
+        
+        // Hide columns for mobile selected items
+        if (isNarrow) {
+            const columns = item.querySelectorAll(':scope > div');
+            columns.forEach((col, index) => {
+                if (index >= 1 && index < columns.length - 1) {
+                    col.style.display = 'none';
+                }
+            });
+            
+            // Keep last column minimal for actions
+            const lastCol = columns[columns.length - 1];
+            if (lastCol) {
+                lastCol.style.width = isExtremeNarrow ? '25px' : '30px';
+                lastCol.style.minWidth = isExtremeNarrow ? '25px' : '30px';
+                lastCol.style.flexShrink = '0';
+                
+                // Minimize action button
+                const button = lastCol.querySelector('button');
+                if (button && isExtremeNarrow) {
+                    button.style.width = '20px';
+                    button.style.height = '20px';
+                    button.style.padding = '2px';
+                }
             }
         }
     });
     
-    console.log(`✅ Responsive fixes applied to ${selectedItems.length} selected items`);
+    console.log(`✅ AGGRESSIVE responsive fixes applied to ${selectedItems.length} selected items`);
 }
 
 // 🐛 BUG FIX 2: Enhanced Force Repaint System
@@ -502,11 +636,18 @@ function comprehensiveBugFix() {
         }, 150);
     });
     
+    // 🐛 FORCE IMMEDIATE RESPONSIVE APPLICATION
+    setTimeout(() => {
+        fixResponsiveSelectedItems();
+        console.log('🔄 Force applied responsive fixes for any existing selections');
+    }, 200);
+    
     console.log('✅✅✅ COMPREHENSIVE BUG FIX COMPLETED');
-    console.log('🎯 All 3 bugs should now be fixed:');
+    console.log('🎯 All 4 bugs should now be fixed:');
     console.log('  1. ✅ Grid layout konsisten');
     console.log('  2. ✅ Highlight biru akan muncul');
     console.log('  3. ✅ Context menu akan berfungsi');
+    console.log('  4. ✅ AGGRESSIVE mobile responsive untuk selected items');
 }
 
 // 🐛 AUTO-APPLY FIXES WHEN DOM IS READY

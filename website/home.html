@@ -209,21 +209,30 @@
             box-shadow: 0 6px 16px rgba(33,150,243,0.5) !important;
         }
         
-        /* 🐛 RESPONSIVE ENHANCEMENT: Mobile layout for selected items */
+        /* 🐛 AGGRESSIVE RESPONSIVE: Mobile layout for selected items */
         @media (max-width: 768px) {
             .direct-selected {
                 border-width: 2px !important;
                 border-radius: 8px !important;
                 margin: 2px 0 !important;
                 padding: 6px 8px !important;
+                box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3) !important;
             }
             
             .direct-selected::before {
-                width: 20px !important;
-                height: 20px !important;
-                top: 6px !important;
-                left: 6px !important;
-                font-size: 12px !important;
+                width: 18px !important;
+                height: 18px !important;
+                top: 4px !important;
+                left: 4px !important;
+                font-size: 11px !important;
+            }
+            
+            /* Force name to be dominant in mobile */
+            .direct-selected .text-sm {
+                font-size: 14px !important;
+                font-weight: 700 !important;
+                color: #0d47a1 !important;
+                line-height: 1.2 !important;
             }
         }
         
@@ -233,14 +242,35 @@
                 border-radius: 6px !important;
                 margin: 1px 0 !important;
                 padding: 4px 6px !important;
+                box-shadow: 0 1px 4px rgba(25, 118, 210, 0.2) !important;
             }
             
             .direct-selected::before {
-                width: 18px !important;
-                height: 18px !important;
-                top: 4px !important;
-                left: 4px !important;
-                font-size: 10px !important;
+                width: 16px !important;
+                height: 16px !important;
+                top: 2px !important;
+                left: 2px !important;
+                font-size: 9px !important;
+            }
+            
+            /* Ultra small font for extreme mobile */
+            .direct-selected .text-sm {
+                font-size: 12px !important;
+                font-weight: 600 !important;
+                color: #0d47a1 !important;
+            }
+        }
+        
+        /* Hide elements that can cause overflow in mobile selected items */
+        @media (max-width: 768px) {
+            .direct-selected .text-lg {
+                font-size: 16px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .direct-selected .text-lg {
+                font-size: 14px !important;
             }
         }
     </style>
