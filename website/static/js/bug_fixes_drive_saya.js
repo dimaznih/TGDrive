@@ -32,6 +32,42 @@ function fixGridLayoutConsistency() {
             overflow: visible !important;
         }
         
+        /* 🐛 MEDIUM/TABLET FIX untuk selected items (768px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .file-item.direct-selected,
+            [data-name].direct-selected,
+            [data-path].direct-selected {
+                grid-template-columns: minmax(250px, 3fr) 120px 100px 80px 30px !important;
+                gap: 12px !important;
+                padding: 8px 12px !important;
+            }
+            
+            /* Nama kolom prioritas di medium screen */
+            .file-item.direct-selected .flex.items-center.gap-2.truncate,
+            .file-item.direct-selected > div:first-child {
+                min-width: 250px !important;
+                max-width: none !important;
+                overflow: visible !important;
+                flex-shrink: 0 !important;
+                flex-grow: 1 !important;
+                position: relative !important;
+                z-index: 8 !important;
+                margin-right: 12px !important;
+            }
+            
+            /* Text nama file enhanced di medium */
+            .file-item.direct-selected .text-sm.text-gray-900.truncate,
+            .file-item.direct-selected .file-name {
+                white-space: nowrap !important;
+                overflow: visible !important;
+                text-overflow: unset !important;
+                min-width: 230px !important;
+                font-weight: 600 !important;
+                color: #1565c0 !important;
+                font-size: 14px !important;
+            }
+        }
+        
         /* 🐛 AGGRESSIVE MOBILE FIX untuk selected items */
         @media (max-width: 768px) {
             .file-item,
@@ -166,6 +202,16 @@ function fixGridLayoutConsistency() {
             align-items: center !important;
         }
         
+        /* 🐛 MEDIUM/TABLET header consistency */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            #table-header {
+                grid-template-columns: minmax(250px, 3fr) 120px 100px 80px 30px !important;
+                gap: 12px !important;
+                padding: 8px 12px !important;
+                font-size: 12px !important;
+            }
+        }
+        
         @media (max-width: 768px) {
             #table-header {
                 grid-template-columns: minmax(150px, 3fr) 80px 60px 40px !important;
@@ -207,9 +253,9 @@ function fixGridLayoutConsistency() {
     console.log('✅ Grid layout consistency applied');
 }
 
-// 🐛 BUG FIX 1B: AGGRESSIVE Responsive Layout for Selected Items
+// 🐛 BUG FIX 1B: COMPREHENSIVE Responsive Layout for Selected Items
 function fixResponsiveSelectedItems() {
-    console.log('📱 Applying AGGRESSIVE responsive fixes for selected items...');
+    console.log('📱 Applying COMPREHENSIVE responsive fixes for selected items...');
     
     // Force apply responsive layout specifically for selected items
     const selectedItems = document.querySelectorAll('.direct-selected');
@@ -219,11 +265,13 @@ function fixResponsiveSelectedItems() {
         item.offsetHeight; // Force reflow
         item.style.display = 'grid';
         
-        // Detect screen size
-        const isNarrow = window.innerWidth <= 768;
+        // Detect screen size - EXPANDED detection
         const isExtremeNarrow = window.innerWidth <= 480;
+        const isNarrow = window.innerWidth <= 768;
+        const isMedium = window.innerWidth >= 769 && window.innerWidth <= 1024;
+        const isDesktop = window.innerWidth > 1024;
         
-        // Apply ULTRA aggressive grid layout
+        // Apply screen-specific grid layout
         if (isExtremeNarrow) {
             item.style.gridTemplateColumns = '1fr 25px';
             item.style.gap = '2px';
@@ -234,6 +282,12 @@ function fixResponsiveSelectedItems() {
             item.style.gap = '4px';
             item.style.padding = '6px 8px';
             item.style.margin = '2px 0';
+        } else if (isMedium) {
+            // 🐛 MEDIUM/TABLET FIX: Prioritas nama kolom
+            item.style.gridTemplateColumns = 'minmax(250px, 3fr) 120px 100px 80px 30px';
+            item.style.gap = '12px';
+            item.style.padding = '8px 12px';
+            item.style.margin = '0';
         } else {
             // Reset to normal for desktop
             item.style.gridTemplateColumns = '';
@@ -242,40 +296,90 @@ function fixResponsiveSelectedItems() {
             item.style.margin = '';
         }
         
-        // ULTRA prioritize name column in mobile
+        // Prioritize name column based on screen size
         const nameContainer = item.querySelector('.flex.items-center.gap-2.truncate') || 
                              item.querySelector('div:first-child');
-        if (nameContainer && isNarrow) {
-            nameContainer.style.minWidth = '0';
-            nameContainer.style.width = '100%';
-            nameContainer.style.overflow = 'visible';
-            nameContainer.style.flexShrink = '0';
-            nameContainer.style.flexGrow = '1';
-            nameContainer.style.zIndex = '10';
-            nameContainer.style.marginRight = '8px';
+        if (nameContainer) {
+            if (isNarrow) {
+                // Mobile/narrow handling
+                nameContainer.style.minWidth = '0';
+                nameContainer.style.width = '100%';
+                nameContainer.style.overflow = 'visible';
+                nameContainer.style.flexShrink = '0';
+                nameContainer.style.flexGrow = '1';
+                nameContainer.style.zIndex = '10';
+                nameContainer.style.marginRight = '8px';
+            } else if (isMedium) {
+                // 🐛 MEDIUM/TABLET: Enhanced name column handling
+                nameContainer.style.minWidth = '250px';
+                nameContainer.style.maxWidth = 'none';
+                nameContainer.style.overflow = 'visible';
+                nameContainer.style.flexShrink = '0';
+                nameContainer.style.flexGrow = '1';
+                nameContainer.style.zIndex = '8';
+                nameContainer.style.marginRight = '12px';
+                nameContainer.style.position = 'relative';
+            } else {
+                // Desktop: reset to normal
+                nameContainer.style.minWidth = '';
+                nameContainer.style.width = '';
+                nameContainer.style.overflow = '';
+                nameContainer.style.flexShrink = '';
+                nameContainer.style.flexGrow = '';
+                nameContainer.style.zIndex = '';
+                nameContainer.style.marginRight = '';
+                nameContainer.style.position = '';
+                nameContainer.style.maxWidth = '';
+            }
             
-            // Apply to filename text as well
+            // Apply to filename text based on screen size
             const fileNameText = nameContainer.querySelector('.text-sm.text-gray-900.truncate') ||
                                 nameContainer.querySelector('.file-name') ||
                                 nameContainer.querySelector('span:last-child');
             if (fileNameText) {
-                fileNameText.style.whiteSpace = 'nowrap';
-                fileNameText.style.overflow = 'visible';
-                fileNameText.style.textOverflow = 'unset';
-                fileNameText.style.width = '100%';
-                fileNameText.style.fontWeight = '700';
-                fileNameText.style.color = '#0d47a1';
-                fileNameText.style.fontSize = isExtremeNarrow ? '12px' : '14px';
-                fileNameText.style.lineHeight = '1.2';
+                if (isNarrow || isMedium) {
+                    fileNameText.style.whiteSpace = 'nowrap';
+                    fileNameText.style.overflow = 'visible';
+                    fileNameText.style.textOverflow = 'unset';
+                    fileNameText.style.fontWeight = isMedium ? '600' : '700';
+                    fileNameText.style.color = isMedium ? '#1565c0' : '#0d47a1';
+                    fileNameText.style.lineHeight = '1.2';
+                    
+                    if (isExtremeNarrow) {
+                        fileNameText.style.fontSize = '12px';
+                        fileNameText.style.width = '100%';
+                    } else if (isNarrow) {
+                        fileNameText.style.fontSize = '14px';
+                        fileNameText.style.width = '100%';
+                    } else if (isMedium) {
+                        fileNameText.style.fontSize = '14px';
+                        fileNameText.style.minWidth = '230px';
+                    }
+                } else {
+                    // Desktop: reset text styling
+                    fileNameText.style.whiteSpace = '';
+                    fileNameText.style.overflow = '';
+                    fileNameText.style.textOverflow = '';
+                    fileNameText.style.width = '';
+                    fileNameText.style.fontWeight = '';
+                    fileNameText.style.color = '';
+                    fileNameText.style.fontSize = '';
+                    fileNameText.style.lineHeight = '';
+                    fileNameText.style.minWidth = '';
+                }
             }
         }
         
-        // Hide columns for mobile selected items
+        // Handle columns based on screen size
+        const columns = item.querySelectorAll(':scope > div');
+        
         if (isNarrow) {
-            const columns = item.querySelectorAll(':scope > div');
+            // Mobile: Hide most columns, keep only name + action
             columns.forEach((col, index) => {
                 if (index >= 1 && index < columns.length - 1) {
                     col.style.display = 'none';
+                } else if (index < columns.length - 1) {
+                    col.style.display = '';
                 }
             });
             
@@ -294,10 +398,46 @@ function fixResponsiveSelectedItems() {
                     button.style.padding = '2px';
                 }
             }
+        } else if (isMedium) {
+            // 🐛 MEDIUM/TABLET: Show all columns but ensure proper spacing
+            columns.forEach((col, index) => {
+                col.style.display = '';
+                
+                // Ensure proper column widths for medium screen
+                if (index === 1) { // Owner column
+                    col.style.width = '120px';
+                    col.style.minWidth = '120px';
+                } else if (index === 2) { // Date column
+                    col.style.width = '100px';
+                    col.style.minWidth = '100px';
+                } else if (index === 3) { // Size column
+                    col.style.width = '80px';
+                    col.style.minWidth = '80px';
+                } else if (index === 4) { // Action column
+                    col.style.width = '30px';
+                    col.style.minWidth = '30px';
+                }
+            });
+        } else {
+            // Desktop: Reset all columns to normal
+            columns.forEach((col, index) => {
+                col.style.display = '';
+                col.style.width = '';
+                col.style.minWidth = '';
+                col.style.flexShrink = '';
+                
+                // Reset button styles
+                const button = col.querySelector('button');
+                if (button) {
+                    button.style.width = '';
+                    button.style.height = '';
+                    button.style.padding = '';
+                }
+            });
         }
     });
     
-    console.log(`✅ AGGRESSIVE responsive fixes applied to ${selectedItems.length} selected items`);
+    console.log(`✅ COMPREHENSIVE responsive fixes applied to ${selectedItems.length} selected items (Mobile/Tablet/Desktop)`);
 }
 
 // 🐛 BUG FIX 2: Enhanced Force Repaint System
@@ -643,11 +783,12 @@ function comprehensiveBugFix() {
     }, 200);
     
     console.log('✅✅✅ COMPREHENSIVE BUG FIX COMPLETED');
-    console.log('🎯 All 4 bugs should now be fixed:');
+    console.log('🎯 All 5 bugs should now be fixed:');
     console.log('  1. ✅ Grid layout konsisten');
     console.log('  2. ✅ Highlight biru akan muncul');
     console.log('  3. ✅ Context menu akan berfungsi');
-    console.log('  4. ✅ AGGRESSIVE mobile responsive untuk selected items');
+    console.log('  4. ✅ Mobile responsive untuk selected items');
+    console.log('  5. ✅ MEDIUM/TABLET responsive untuk selected items (768-1024px)');
 }
 
 // 🐛 AUTO-APPLY FIXES WHEN DOM IS READY
