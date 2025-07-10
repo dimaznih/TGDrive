@@ -140,7 +140,8 @@ def test_telegram_bot_api():
     print("\n🤖 Testing Telegram Bot API")
     print("=" * 40)
     
-    bot_token = "7914171749:AAHPJkVrKZKcvMLmg7A5UxtPpjUSOY2ezeI"
+    # Updated bot token
+    bot_token = "7934604269:AAHNUA-tKN0zjJ0wY1ZOfvQCeFNakY97BNE"
     
     try:
         # Test getMe endpoint
@@ -214,14 +215,14 @@ def main():
     else:
         print("✅ Bot API is accessible")
         print("\n🔧 Your 'Peer id invalid' error is likely due to:")
-        print("1. Bot not added to the storage channel as admin")
+        print("1. NEW BOT not added to the storage channel as admin")
         print("2. Incorrect channel ID")
         print("3. Channel doesn't exist or was deleted")
         print("4. DATABASE_BACKUP_MSG_ID points to non-existent message")
         
         print("\n📋 NEXT STEPS:")
         print("1. Check your storage channel -1002843656111")
-        print("2. Make sure your bot is admin in that channel")
+        print("2. REMOVE old bot and ADD NEW BOT as admin in that channel")
         print("3. Verify message ID 10 exists in the channel")
         print("4. Or create a new channel and update your config")
 
