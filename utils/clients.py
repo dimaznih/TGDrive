@@ -14,6 +14,11 @@ work_loads = {}
 premium_work_loads = {}
 main_bot = None
 
+# ✅ TOR PROXY CONFIG - BYPASS IP BLOCK
+TOR_PROXY = {
+    "hostname": "127.0.0.1",
+    "port": 9050
+}
 
 async def initialize_clients():
     global multi_clients, work_loads, premium_clients, premium_work_loads
@@ -29,7 +34,7 @@ async def initialize_clients():
 
     async def start_client(client_id, token, type):
         try:
-            logger.info(f"Starting - {type.title()} Client {client_id}")
+            logger.info(f"Starting - {type.title()} Client {client_id} via Tor Proxy")
 
             if type == "bot":
                 client = Client(
@@ -38,12 +43,13 @@ async def initialize_clients():
                     api_hash=config.API_HASH,
                     bot_token=token,
                     workdir=session_cache_path,
+                    proxy=TOR_PROXY  # ✅ Use Tor proxy to bypass IP block
                 )
                 client.loop = asyncio.get_running_loop()
                 await client.start()
                 await client.send_message(
                     config.STORAGE_CHANNEL,
-                    f"Started - {type.title()} Client {client_id}",
+                    f"Started - {type.title()} Client {client_id} via Tor",
                 )
                 multi_clients[client_id] = client
                 work_loads[client_id] = 0
@@ -56,10 +62,11 @@ async def initialize_clients():
                     sleep_threshold=config.SLEEP_THRESHOLD,
                     workdir=session_cache_path,
                     no_updates=True,
+                    proxy=TOR_PROXY  # ✅ Use Tor proxy to bypass IP block
                 ).start()
                 await client.send_message(
                     config.STORAGE_CHANNEL,
-                    f"Started - {type.title()} Client {client_id}",
+                    f"Started - {type.title()} Client {client_id} via Tor",
                 )
                 premium_clients[client_id] = client
                 premium_work_loads[client_id] = 0
