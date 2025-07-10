@@ -14,15 +14,6 @@ work_loads = {}
 premium_work_loads = {}
 main_bot = None
 
-# ✅ TOR PROXY CONFIG - BYPASS IP BLOCK
-# TEMPORARILY DISABLED TO AVOID FLOOD WAIT
-TOR_PROXY = None  # Disabled to bypass flood wait
-# TOR_PROXY = {
-#     "scheme": "socks5",
-#     "hostname": "127.0.0.1", 
-#     "port": 9050
-# }
-
 async def initialize_clients():
     global multi_clients, work_loads, premium_clients, premium_work_loads
     logger.info("Initializing Clients")
@@ -37,10 +28,7 @@ async def initialize_clients():
 
     async def start_client(client_id, token, type):
         try:
-            if TOR_PROXY:
-                logger.info(f"Starting - {type.title()} Client {client_id} via Tor Proxy")
-            else:
-                logger.info(f"Starting - {type.title()} Client {client_id}")
+            logger.info(f"Starting - {type.title()} Client {client_id}")
 
             if type == "bot":
                 client = Client(
@@ -49,15 +37,10 @@ async def initialize_clients():
                     api_hash=config.API_HASH,
                     bot_token=token,
                     workdir=session_cache_path,
-                    proxy=TOR_PROXY  # None = direct connection, no proxy
+                    # No proxy - direct connection only
                 )
                 client.loop = asyncio.get_running_loop()
                 await client.start()
-                # ✅ Skip auto-send message to prevent "Peer id invalid" errors
-                # await client.send_message(
-                #     config.STORAGE_CHANNEL,
-                #     f"Started - {type.title()} Client {client_id} via Tor",
-                # )
                 multi_clients[client_id] = client
                 work_loads[client_id] = 0
             elif type == "user":
@@ -69,13 +52,8 @@ async def initialize_clients():
                     sleep_threshold=config.SLEEP_THRESHOLD,
                     workdir=session_cache_path,
                     no_updates=True,
-                    proxy=TOR_PROXY  # None = direct connection, no proxy
+                    # No proxy - direct connection only
                 ).start()
-                # ✅ Skip auto-send message to prevent "Peer id invalid" errors
-                # await client.send_message(
-                #     config.STORAGE_CHANNEL,
-                #     f"Started - {type.title()} Client {client_id} via Tor",
-                # )
                 premium_clients[client_id] = client
                 premium_work_loads[client_id] = 0
 
@@ -85,7 +63,7 @@ async def initialize_clients():
             if "FLOOD_WAIT_X" in error_msg:
                 # Extract wait time from flood wait error
                 import re
-                wait_match = re.search(r'Please wait (\d+) seconds', error_msg)
+                wait_match = re.search(r'(\d+) seconds', error_msg)
                 if wait_match:
                     wait_time = int(wait_match.group(1))
                     logger.info(f"🕐 Flood wait detected: {wait_time} seconds")
@@ -94,11 +72,6 @@ async def initialize_clients():
                     logger.info("   1. Wait for automatic retry")
                     logger.info("   2. Create new bot token at @BotFather")
                     logger.info("   3. Use different IP/VPS")
-                    
-                    # Optional: Auto-retry after wait time (comment out if not wanted)
-                    # logger.info(f"⏳ Auto-retrying in {wait_time} seconds...")
-                    # await asyncio.sleep(wait_time + 5)  # +5 seconds buffer
-                    # return await start_client(client_id, token, type)  # Retry
                     
             logger.error(
                 f"Failed To Start {type.title()} Client - {client_id} Error: {e}"
@@ -118,30 +91,28 @@ async def initialize_clients():
     )
     if len(multi_clients) == 0:
         logger.error("No Clients Were Initialized")
-
-        # Forcefully terminates the program immediately
-        os.kill(os.getpid(), signal.SIGKILL)
+        # Don't kill process - let it handle gracefully
+        return False
 
     if len(premium_clients) == 0:
         logger.info("No Premium Clients Were Initialized")
 
     logger.info("Clients Initialized")
-
-    # Load the drive data
-    await loadDriveData()
-
-    # Start the backup drive data task
-    asyncio.create_task(backup_drive_data())
+    return True
 
 
 def get_client(premium_required=False) -> Client:
     global multi_clients, work_loads, premium_clients, premium_work_loads
 
     if premium_required:
+        if not premium_clients:
+            return None
         index = min(premium_work_loads, key=premium_work_loads.get)
         premium_work_loads[index] += 1
         return premium_clients[index]
 
+    if not multi_clients:
+        return None
     index = min(work_loads, key=work_loads.get)
     work_loads[index] += 1
     return multi_clients[index]
