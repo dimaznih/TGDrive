@@ -9,15 +9,15 @@ import urllib.parse
 import json
 
 def test_new_channel():
-    print("🔧 Test Channel Baru TGDrive")
+    print("🔧 Test Channel Fresh TGDrive")
     print("=" * 40)
     
-    # Konfigurasi baru
-    bot_token = "7934604269:AAHNUA-tKN0zjJ0wY1ZOfvQCeFNakY97BNE"
-    new_channel = -1002790495223
-    message_id = 1
+    # Konfigurasi fresh
+    bot_token = "7079298713:AAGZM6gAkH7EUuqP8uTdY9lhLcua-ApAXWM"
+    new_channel = -1002678381463
+    message_id = 10
     
-    print(f"🤖 Bot: @Kudobot2bot")
+    print(f"🤖 Bot: New Fresh Bot")
     print(f"📡 Channel: {new_channel}")
     print(f"📄 Message ID: {message_id}")
     print()
@@ -74,15 +74,14 @@ def test_new_channel():
     except Exception as e:
         print(f"   ⚠️  Message test warning: {e}")
     
-    # Test 4: Send test message
+    # Test 4: Check specific message
     try:
-        print("\n✉️ Test 4: Send Test Message")
-        
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        message_text = "🧪 Test message dari TGDrive\n\nChannel baru sudah siap!"
+        print(f"\n📄 Test 4: Check Message ID {message_id}")
+        url = f"https://api.telegram.org/bot{bot_token}/forwardMessage"
         data = urllib.parse.urlencode({
             'chat_id': new_channel,
-            'text': message_text
+            'from_chat_id': new_channel,
+            'message_id': message_id
         }).encode()
         
         request = urllib.request.Request(url, data=data)
@@ -90,23 +89,38 @@ def test_new_channel():
         result = json.loads(response.read().decode())
         
         if result.get('ok'):
-            msg_info = result['result']
-            print(f"   ✅ Test message sent successfully!")
-            print(f"   📄 Message ID: {msg_info.get('message_id')}")
-            
-            # Update recommended message ID if this is not ID 1
-            if msg_info.get('message_id') != 1:
-                print(f"\n💡 RECOMMENDED: Update DATABASE_BACKUP_MSG_ID={msg_info.get('message_id')}")
+            print(f"   ✅ Message {message_id} exists and accessible!")
         else:
-            print(f"   ❌ Send message failed: {result.get('description')}")
-            return False
+            print(f"   ❌ Message {message_id} not found: {result.get('description')}")
+            print(f"   � Will try to send a new backup message...")
+            
+            # Send backup message
+            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            message_text = "🔐 TGDrive Database Backup\n\nIni adalah backup file untuk TGDrive.\nJANGAN HAPUS MESSAGE INI!"
+            data = urllib.parse.urlencode({
+                'chat_id': new_channel,
+                'text': message_text
+            }).encode()
+            
+            request = urllib.request.Request(url, data=data)
+            response = urllib.request.urlopen(request, timeout=15)
+            result = json.loads(response.read().decode())
+            
+            if result.get('ok'):
+                new_msg_id = result['result']['message_id']
+                print(f"   ✅ New backup message created with ID: {new_msg_id}")
+                print(f"   💡 RECOMMENDED: Update DATABASE_BACKUP_MSG_ID={new_msg_id}")
+                return True
+            else:
+                print(f"   ❌ Failed to create backup message: {result.get('description')}")
+                return False
             
     except Exception as e:
-        print(f"   ❌ Send test failed: {e}")
+        print(f"   ❌ Message check failed: {e}")
         return False
     
     print("\n" + "=" * 40)
-    print("🎯 RESULT: Channel baru READY! ✅")
+    print("🎯 RESULT: Fresh channel READY! ✅")
     print("🚀 Sekarang jalankan aplikasi TGDrive")
     return True
 
