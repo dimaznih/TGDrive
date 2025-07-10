@@ -16,7 +16,8 @@ main_bot = None
 
 # ✅ TOR PROXY CONFIG - BYPASS IP BLOCK
 TOR_PROXY = {
-    "hostname": "127.0.0.1",
+    "scheme": "socks5",
+    "hostname": "127.0.0.1", 
     "port": 9050
 }
 
