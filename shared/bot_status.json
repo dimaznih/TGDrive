@@ -1,10 +1,8 @@
 {
-  "status": "running",
-  "timestamp": 1752153563.8094692,
+  "status": "error",
+  "timestamp": 1752154921.3188,
   "details": {
-    "client_connected": true,
-    "drive_loaded": true,
-    "clients_count": 1
+    "message": "Telegram says: [420 FLOOD_WAIT_X] - Please wait 382 seconds before repeating the action. (caused by \"auth.ImportBotAuthorization\")"
   },
-  "clients_count": 1
+  "clients_count": 0
 }
