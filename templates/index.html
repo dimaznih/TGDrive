@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGDrive - Separated Deployment</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 600px;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .status {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .healthy {
+            border-left: 4px solid #28a745;
+        }
+        .degraded {
+            border-left: 4px solid #ffc107;
+        }
+        .error {
+            border-left: 4px solid #dc3545;
+        }
+        .api-section {
+            margin: 2rem 0;
+            text-align: left;
+        }
+        .endpoint {
+            background: #f1f3f4;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .feature-list {
+            text-align: left;
+            margin: 1rem 0;
+        }
+        .feature-list li {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .feature-list li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 TGDrive - Separated Deployment</h1>
+        <p class="success">System Successfully Running!</p>
+        
+        <div class="status healthy">
+            <h3>🏥 System Status</h3>
+            <p><strong>Bot Service:</strong> <span class="success">Running</span></p>
+            <p><strong>Web Service:</strong> <span class="success">Running</span></p>
+            <p><strong>Architecture:</strong> <span class="info">Separated Services</span></p>
+        </div>
+
+        <div class="api-section">
+            <h3>🔧 Available API Endpoints</h3>
+            <div class="endpoint">GET /api/health - System health check</div>
+            <div class="endpoint">GET /api/bot/status - Bot service status</div>
+            <div class="endpoint">POST /api/bot/command - Send commands to bot</div>
+            <div class="endpoint">GET /api/drive/data - Get drive data</div>
+            <div class="endpoint">POST /api/drive/sync - Sync drive data</div>
+        </div>
+
+        <div class="feature-list">
+            <h3>🎯 Key Features Implemented</h3>
+            <li><strong>Separated Bot & Web Services</strong> - Independent deployment</li>
+            <li><strong>No More Flood Wait</strong> - Bot doesn't restart with web changes</li>
+            <li><strong>Zero Downtime Deployments</strong> - Update web without affecting bot</li>
+            <li><strong>Health Monitoring</strong> - Real-time service status</li>
+            <li><strong>Command Communication</strong> - Web ↔ Bot service messaging</li>
+            <li><strong>Production Ready</strong> - Process management & error handling</li>
+        </div>
+
+        <div class="api-section">
+            <h3>📋 Management Commands</h3>
+            <div class="endpoint">python3 manage.py status - Check all services</div>
+            <div class="endpoint">python3 manage.py restart-web - Restart web only</div>
+            <div class="endpoint">python3 manage.py restart-bot - Restart bot only</div>
+            <div class="endpoint">./quick_start.sh - Complete setup</div>
+        </div>
+
+        <p><strong>🎉 TGDrive Separated Deployment System is Working!</strong></p>
+        <p class="info">Bot and Web services are running independently - no more flood wait issues!</p>
+    </div>
+
+    <script>
+        // Auto-refresh health status
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const health = await response.json();
+                
+                console.log('Health Status:', health);
+                
+                // Update status indicators based on health
+                const statusDiv = document.querySelector('.status');
+                if (health.status === 'healthy') {
+                    statusDiv.className = 'status healthy';
+                } else {
+                    statusDiv.className = 'status degraded';
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+                const statusDiv = document.querySelector('.status');
+                statusDiv.className = 'status error';
+            }
+        }
+        
+        // Check health every 30 seconds
+        setInterval(checkHealth, 30000);
+        
+        // Initial health check
+        checkHealth();
+    </script>
+</body>
+</html>

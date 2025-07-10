@@ -33,7 +33,7 @@ class ServiceManager:
         print("🤖 Starting Bot Service...")
         try:
             self.bot_process = subprocess.Popen([
-                sys.executable, "bot_service.py"
+                sys.executable, "bot_service_fixed.py"
             ], 
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

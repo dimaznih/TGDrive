@@ -26,9 +26,27 @@ logger = Logger(__name__)
 # FastAPI app
 app = FastAPI(title="TGDrive Web Service")
 
-# Mount static files and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+# Mount static files and templates (with error handling)
+try:
+    if Path("static").exists():
+        app.mount("/static", StaticFiles(directory="static"), name="static")
+    else:
+        logger.warning("Static directory not found, creating empty directory")
+        Path("static").mkdir(exist_ok=True)
+        app.mount("/static", StaticFiles(directory="static"), name="static")
+except Exception as e:
+    logger.error(f"Error mounting static files: {e}")
+
+try:
+    if Path("templates").exists():
+        templates = Jinja2Templates(directory="templates")
+    else:
+        logger.warning("Templates directory not found, creating empty directory")
+        Path("templates").mkdir(exist_ok=True)
+        templates = Jinja2Templates(directory="templates")
+except Exception as e:
+    logger.error(f"Error setting up templates: {e}")
+    templates = None
 
 class WebService:
     def __init__(self):
@@ -98,12 +116,18 @@ async def shutdown_event():
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Main drive interface"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    if templates:
+        return templates.TemplateResponse("index.html", {"request": request})
+    else:
+        return HTMLResponse("<h1>TGDrive - Templates not found</h1><p>Please set up templates directory.</p>")
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin(request: Request):
     """Admin interface"""
-    return templates.TemplateResponse("admin.html", {"request": request})
+    if templates:
+        return templates.TemplateResponse("admin.html", {"request": request})
+    else:
+        return HTMLResponse("<h1>TGDrive Admin - Templates not found</h1><p>Please set up templates directory.</p>")
 
 @app.get("/api/health")
 async def health_check():

@@ -1,0 +1,10 @@
+{
+  "status": "running",
+  "timestamp": 1752153383.795991,
+  "details": {
+    "client_connected": true,
+    "drive_loaded": true,
+    "clients_count": 1
+  },
+  "clients_count": 1
+}

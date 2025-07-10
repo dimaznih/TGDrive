@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-TGDrive Bot Service - Runs independently from Web Service
-Handles all Telegram bot operations and file management
+TGDrive Bot Service - Fixed Version
+Uses same approach as successful debug script
 """
 
 import asyncio
@@ -16,72 +16,81 @@ sys.path.append(str(Path(__file__).parent))
 import config
 from utils.logger import Logger
 from utils.shared_comm import shared_comm
-from utils.clients import initialize_clients, get_client
-from utils.directoryHandler import loadDriveData, backup_drive_data, DRIVE_DATA, init_drive_data
+from pyrogram import Client
+from utils.directoryHandler import backup_drive_data, DRIVE_DATA, init_drive_data
 
 logger = Logger(__name__)
 
-class BotService:
+class BotServiceFixed:
     def __init__(self):
         self.running = False
-        self.clients_initialized = False
+        self.client = None
         self.drive_loaded = False
         
     async def start(self):
         """Start the bot service"""
-        logger.info("🤖 Starting TGDrive Bot Service...")
+        logger.info("🤖 Starting TGDrive Bot Service (Fixed)...")
         shared_comm.update_bot_status("starting", {"message": "Initializing bot service"})
         
         try:
-            # Initialize clients
-            logger.info("📡 Initializing Telegram clients...")
+            # Initialize single client (like debug script)
+            logger.info("📡 Creating bot client...")
             shared_comm.update_bot_status("starting", {"message": "Connecting to Telegram"})
             
-            success = await initialize_clients()
-            if not success:
-                logger.error("❌ Failed to initialize clients")
-                shared_comm.update_bot_status("error", {"message": "Failed to connect to Telegram"})
+            session_cache_path = Path("./cache")
+            session_cache_path.mkdir(parents=True, exist_ok=True)
+            
+            self.client = Client(
+                name="bot_service_main",
+                api_id=config.API_ID,
+                api_hash=config.API_HASH,
+                bot_token=config.MAIN_BOT_TOKEN,
+                workdir=session_cache_path,
+                # No proxy - direct connection like debug script
+            )
+            
+            logger.info("🚀 Starting client...")
+            await self.client.start()
+            logger.info("✅ Bot client started successfully!")
+            
+            # Test channel access (like debug script)
+            logger.info(f"🔍 Testing channel access: {config.STORAGE_CHANNEL}")
+            try:
+                chat = await self.client.get_chat(config.STORAGE_CHANNEL)
+                logger.info(f"✅ Channel access confirmed: {chat.title}")
+                
+                # Test message access
+                msg = await self.client.get_messages(config.STORAGE_CHANNEL, config.DATABASE_BACKUP_MSG_ID)
+                logger.info(f"✅ Message {config.DATABASE_BACKUP_MSG_ID} accessible")
+            except Exception as e:
+                logger.error(f"❌ Channel access test failed: {e}")
+                await self.client.stop()
+                shared_comm.update_bot_status("error", {"message": f"Channel access failed: {e}"})
                 return False
             
-            self.clients_initialized = True
-            logger.info("✅ Telegram clients initialized")
-            
-            # Load drive data
+            # Load drive data with working client
             logger.info("💾 Loading drive data...")
             shared_comm.update_bot_status("starting", {"message": "Loading drive data"})
             
-            # Test channel access first
-            try:
-                from utils.clients import get_client
-                client = get_client()
-                if client:
-                    logger.info(f"🔍 Testing channel access: {config.STORAGE_CHANNEL}")
-                    chat = await client.get_chat(config.STORAGE_CHANNEL)
-                    logger.info(f"✅ Channel access confirmed: {chat.title}")
-                    
-                    # Test message access
-                    msg = await client.get_messages(config.STORAGE_CHANNEL, config.DATABASE_BACKUP_MSG_ID)
-                    logger.info(f"✅ Message {config.DATABASE_BACKUP_MSG_ID} accessible")
-                else:
-                    logger.error("❌ No client available for testing")
-            except Exception as e:
-                logger.error(f"❌ Channel access test failed: {e}")
-                logger.info("⚠️ Continuing with fresh drive data creation...")
+            await self.load_drive_data_fixed()
             
-            await loadDriveData()
-            await init_drive_data()
+            # Initialize drive data only if DRIVE_DATA exists
+            global DRIVE_DATA
+            if DRIVE_DATA:
+                await init_drive_data()
+            
             self.drive_loaded = True
             logger.info("✅ Drive data loaded")
             
             # Start background tasks
-            asyncio.create_task(self.backup_task())
+            asyncio.create_task(self.backup_task_fixed())
             asyncio.create_task(self.command_processor())
             asyncio.create_task(self.status_updater())
             
             self.running = True
             shared_comm.update_bot_status("running", {
                 "message": "Bot service running",
-                "clients_count": len(config.BOT_TOKENS)
+                "clients_count": 1
             })
             
             logger.info("🎉 Bot Service started successfully!")
@@ -92,24 +101,102 @@ class BotService:
             shared_comm.update_bot_status("error", {"message": str(e)})
             return False
     
-    async def backup_task(self):
-        """Background task for backing up drive data"""
+    async def load_drive_data_fixed(self):
+        """Load drive data using our working client"""
+        global DRIVE_DATA
+        from utils.directoryHandler import NewDriveData, Folder
+        
+        logger.info("Loading drive data with fixed client...")
+        
+        try:
+            # Try to get backup message
+            msg = await self.client.get_messages(config.STORAGE_CHANNEL, config.DATABASE_BACKUP_MSG_ID)
+            
+            if msg.document and msg.document.file_name == "drive.data":
+                logger.info("📥 Downloading backup file...")
+                dl_path = await msg.download()
+                
+                import dill
+                with open(dl_path, "rb") as f:
+                    DRIVE_DATA = dill.load(f)
+                
+                logger.info("✅ Drive data loaded from backup")
+                
+                # Clean up downloaded file
+                Path(dl_path).unlink()
+            else:
+                raise Exception("No valid backup file found")
+                
+        except Exception as e:
+            logger.warning(f"Backup load failed: {e}")
+            logger.info("Creating new drive.data file...")
+            
+            # Make sure to import and set global properly
+            DRIVE_DATA = NewDriveData({"/": Folder("/", "/")}, [])
+            DRIVE_DATA.save()
+            
+            # Also update the module global
+            import utils.directoryHandler
+            utils.directoryHandler.DRIVE_DATA = DRIVE_DATA
+            
+            logger.info("✅ New drive data created")
+    
+    async def backup_task_fixed(self):
+        """Background task for backing up drive data with working client"""
         logger.info("📋 Starting backup task...")
         backup_error_count = 0
+        
         while self.running:
             try:
-                await backup_drive_data(loop=False)  # Single backup
+                global DRIVE_DATA
+                if not DRIVE_DATA or not DRIVE_DATA.isUpdated:
+                    await asyncio.sleep(config.DATABASE_BACKUP_TIME)
+                    continue
+                
+                logger.info("📤 Backing up drive data...")
+                
+                # Create backup file
+                from utils.directoryHandler import drive_cache_path, get_current_utc_time
+                from pyrogram.types import InputMediaDocument
+                
+                time_text = f"📅 **Last Updated :** {get_current_utc_time()} (UTC +00:00)"
+                caption = (
+                    f"🔐 **TG Drive Data Backup File**\n\n"
+                    "Do not edit or delete this message. This is a backup file for the tg drive data.\n\n"
+                    f"{time_text}"
+                )
+                
+                media_doc = InputMediaDocument(drive_cache_path, caption=caption)
+                
+                # Edit message with backup
+                msg = await self.client.edit_message_media(
+                    config.STORAGE_CHANNEL,
+                    config.DATABASE_BACKUP_MSG_ID,
+                    media=media_doc,
+                    file_name="drive.data",
+                )
+                
+                DRIVE_DATA.isUpdated = False
+                logger.info("✅ Drive data backed up successfully")
+                
+                # Try to pin the message
+                try:
+                    await msg.pin()
+                except Exception as pin_e:
+                    logger.warning(f"Could not pin backup message: {pin_e}")
+                
                 backup_error_count = 0  # Reset error count on success
                 await asyncio.sleep(config.DATABASE_BACKUP_TIME)
+                
             except Exception as e:
                 backup_error_count += 1
-                if backup_error_count <= 3:  # Only log first 3 errors
-                    logger.error(f"Backup task error: {e}")
+                if backup_error_count <= 3:
+                    logger.error(f"Backup error: {e}")
                 elif backup_error_count == 4:
-                    logger.warning("Backup errors continue, suppressing further logs for 10 minutes...")
+                    logger.warning("Multiple backup errors, reducing log frequency...")
                 
-                # Exponential backoff on errors
-                wait_time = min(600, 60 * (2 ** min(backup_error_count, 4)))  # Max 10 minutes
+                # Exponential backoff
+                wait_time = min(600, 60 * (2 ** min(backup_error_count, 4)))
                 await asyncio.sleep(wait_time)
     
     async def command_processor(self):
@@ -152,11 +239,9 @@ class BotService:
         global DRIVE_DATA
         
         if command == "upload_file":
-            # Handle file upload
             return {"status": "upload_handled"}
             
         elif command == "create_folder":
-            # Handle folder creation
             path = params.get("path", "/")
             name = params.get("name", "New Folder")
             if DRIVE_DATA:
@@ -164,14 +249,12 @@ class BotService:
                 return {"status": "folder_created", "path": folder_path}
             
         elif command == "delete_item":
-            # Handle item deletion
             path = params.get("path")
             if DRIVE_DATA and path:
                 DRIVE_DATA.delete_file_folder(path)
                 return {"status": "item_deleted", "path": path}
                 
         elif command == "move_items":
-            # Handle item moving
             file_ids = params.get("file_ids", [])
             destination = params.get("destination", "/")
             if DRIVE_DATA:
@@ -179,11 +262,9 @@ class BotService:
                 return {"status": "items_moved", "moved_items": moved}
         
         elif command == "sync_drive_data":
-            # Sync drive data to shared storage
             if DRIVE_DATA:
-                # Convert DRIVE_DATA to serializable format
                 drive_dict = {
-                    "contents": {},  # This would need proper serialization
+                    "contents": {},
                     "used_ids": DRIVE_DATA.used_ids if hasattr(DRIVE_DATA, 'used_ids') else [],
                     "timestamp": time.time()
                 }
@@ -197,9 +278,9 @@ class BotService:
         while self.running:
             try:
                 details = {
-                    "clients_initialized": self.clients_initialized,
+                    "client_connected": self.client and self.client.is_connected,
                     "drive_loaded": self.drive_loaded,
-                    "clients_count": len(config.BOT_TOKENS) if self.clients_initialized else 0
+                    "clients_count": 1 if self.client else 0
                 }
                 shared_comm.update_bot_status("running", details)
                 await asyncio.sleep(30)  # Update every 30 seconds
@@ -211,6 +292,11 @@ class BotService:
         """Stop the bot service"""
         logger.info("🛑 Stopping Bot Service...")
         self.running = False
+        
+        if self.client and self.client.is_connected:
+            await self.client.stop()
+            logger.info("🛑 Client disconnected")
+        
         shared_comm.update_bot_status("stopped", {"message": "Bot service stopped"})
     
     def handle_signal(self, signum, frame):
@@ -220,7 +306,7 @@ class BotService:
 
 async def main():
     """Main entry point for bot service"""
-    bot_service = BotService()
+    bot_service = BotServiceFixed()
     
     # Setup signal handlers
     signal.signal(signal.SIGINT, bot_service.handle_signal)
