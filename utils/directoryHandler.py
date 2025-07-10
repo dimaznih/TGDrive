@@ -478,15 +478,19 @@ async def loadDriveData():
             )
         except Exception as e:
             logger.error(f"Error fetching backup message: {e}")
-
-            # Forcefully terminates the program immediately
-            os.kill(os.getpid(), signal.SIGKILL)
+            logger.warning(f"Cannot load backup from Telegram. Creating new drive.data file.")
+            DRIVE_DATA = NewDriveData({"/": Folder("/", "/")}, [])
+            DRIVE_DATA.save()
+            await init_drive_data()
+            return
 
         if not msg.document:
-            logger.error(f"Error fetching backup message: {e}")
-
-            # Forcefully terminates the program immediately
-            os.kill(os.getpid(), signal.SIGKILL)
+            logger.error(f"Backup message {config.DATABASE_BACKUP_MSG_ID} has no document attached")
+            logger.warning(f"Cannot load backup from Telegram. Creating new drive.data file.")
+            DRIVE_DATA = NewDriveData({"/": Folder("/", "/")}, [])
+            DRIVE_DATA.save()
+            await init_drive_data()
+            return
 
         if msg.document.file_name == "drive.data":
             dl_path = await msg.download()
